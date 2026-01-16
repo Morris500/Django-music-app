@@ -1,38 +1,20 @@
-const path = require("path");
-const Webpack = require("webpack");
+import path from "path";
 
-module.exports = {
+export default {
   entry: "./src/index.js",
-
   output: {
-    path: path.resolve(__dirname, "./static/frontend"),
-    filename: "[name].js",
+    path: path.resolve("./static/frontend"),
+    filename: "main.js",
     clean: true,
   },
-
   module: {
     rules: [
       {
-        test: /\.(js)$/,
+        test: /\.js$/,
         exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-        },
+        use: "babel-loader",
       },
     ],
   },
-
-  optimization: {
-    minimize: true,
-  },
-
-  plugins: [
-    new Webpack.DefinePlugin({
-      "process.env":{
-        NODE_ENV: JSON.stringify("production"),
-      }
-    }),
-  ],
-
- 
+  mode: "development",
 };
