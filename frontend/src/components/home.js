@@ -3,6 +3,7 @@ import ReactDom from "react-dom";
 import { BrowserRouter as Router, Route, Link, Redirect, Routes, } from "react-router-dom";
 import CreateRoomPage from "./createroompage.js";
 import RoomJoinPage from "./roomjoinpage.js";
+import Room from "./room.js";
 
 
 const Homepage = () => {
@@ -13,6 +14,7 @@ const Homepage = () => {
             <Route path="/" element={<p>this is the Homepage</p>} />
             <Route path="/join" element={<RoomJoinPage />} />
             <Route path="/Create" element={<CreateRoomPage />} />
+            <Route path="/room/:roomCode" Component={Room} />
         </Routes>
     </Router>
 }
