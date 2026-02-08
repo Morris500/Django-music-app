@@ -4,6 +4,8 @@ from .serializers import RoomSerializer, CreateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
+# from django.views.decorators.csrf import csrf_exempt
+# from django.utils.decorators import method_decorator
 
 
 # Create your views here.
@@ -29,7 +31,30 @@ class GetRoom(APIView):
             return Response({'Room Not Found': 'Invalid Room Cod.'}, status=status.HTTP_404_NOT_FOUND)
         
         return Response({'Bad Request': 'Code parameter not found in request'}, status=status.HTTP_400_BAD_REQUEST)
+    
+class JoinRoom(APIView):
+        lookup_url_kwarg = 'code'
 
+        def post(self, req, format= None):
+            if not req.session.exists(req.session.session_key):
+                req.session.create()
+
+            code = req.data.get(self.lookup_url_kwarg)    
+            if code != None:
+                room_result = Room.objects.filter(code = code)
+                if len(room_result) > 0:
+                    room = room_result[0]
+                    req.session['room_code'] = code
+                    return Response({'message': 'Room joined'}, status=status.HTTP_200_OK)
+                else:
+                    return Response({'Bad Request':'Invalid room code' }, status=status.HTTP_400_BAD_REQUEST)
+
+            else: 
+                return Response({'Bad Request':'Invalid post data, did not find a code key' }, status=status.HTTP_400_BAD_REQUEST)
+            
+
+
+# @method_decorator(csrf_exempt, name='dispatch')
 class CreateRoomView(APIView):
     serializer_class = CreateRoomSerializer
     def post (self, req, format=None):
@@ -47,9 +72,10 @@ class CreateRoomView(APIView):
                 room.guest_can_pause = guest_can_pause
                 room.votes_to_skip = votes_to_skip
                 room.save(update_fields=['guest_can_pause', 'votes_to_skip']) 
-
+                req.session['room_code'] = room.code
             else:
                 room = Room(host=host, guest_can_pause = guest_can_pause, votes_to_skip = votes_to_skip )              
 
                 room.save()
+                self.req.session['room_code'] = room.code
             return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)

@@ -1,16 +1,33 @@
 import React, {Component, useState} from "react";
 import { Button, Grid, Typography, TextField, FormHelperText, FormControl, Radio, RadioGroup, FormControlLabel } from "@material-ui/core";
- import { Link } from "react-router-dom";
+ import { Link, useNavigate } from "react-router-dom";
 
-const CreateRoomPage = ()=> {
+const CreateRoomPage = (props)=> {
 const defaultVotes = 2;
+
+const navigate = useNavigate();
 
  const [room, setRoom] = useState({
   guest_can_pause: true,
   votes_to_skip: defaultVotes,
 });
 
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + "=")) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
 
+const csrftoken = getCookie("csrftoken");
 // const HandelVotesChange = (e)=> {
 // setRoom((prev) => ({
 //     ...prev,
@@ -22,28 +39,29 @@ const defaultVotes = 2;
 //     ...prev,
 //     guest_can_Pause: e.target.value === "true" ?true : false}));
 // }  
-const parseData = () =>{
+
+const HandelRoomButtonClicked = () =>{
 
     const requestOptions = {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+    },
     body: JSON.stringify(room)
     
 }
-fetch("/api/", requestOptions).then((res)=>{
+fetch("/api/create-room", requestOptions).then((res)=>{
     res.json().then((data)=> {
-         console.log(data)
+        //console.log(data)
+        
+          navigate('/room/' + data.code)
     }
 )  
 })
 }
-console.log(room);
+//  console.log("X-CSRFToken :", csrftoken);
 
-
-const HandelRoomButtonClicked = (e) =>{
-
-parseData();
-}
 
 
      return <Grid container spacing={1}>
