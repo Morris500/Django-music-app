@@ -4,6 +4,7 @@ from .serializers import RoomSerializer, CreateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
 # from django.views.decorators.csrf import csrf_exempt
 # from django.utils.decorators import method_decorator
 
@@ -78,4 +79,15 @@ class CreateRoomView(APIView):
 
                 room.save()
                 self.req.session['room_code'] = room.code
+
             return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
+        
+class UserInRoom(APIView):
+    def get(self, req, format=None):
+        if not req.session.exists(req.session.session_key):
+            req.session.create()
+        data = {
+            'code': req.session.get('room_code')
+        } 
+
+        return JsonResponse(data, status=status.HTTP_200_OK)      
