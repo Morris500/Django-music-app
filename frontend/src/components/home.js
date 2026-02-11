@@ -24,6 +24,7 @@ const Homepage = () => {
 
 console.log(state);
 
+
    const renderHomePage = ()=> {
     return(
         <Grid container spacing='3'>
@@ -49,7 +50,7 @@ console.log(state);
 
     return <Router>
         <Routes>
-            <Route path="/" element={state ? <Navigate to={`/room/?code=` +`${state}`} replace /> : renderHomePage()} />
+            <Route path="/" element={state ? <Navigate to={`/room/${state}`}  /> : renderHomePage()} />
             <Route path="/join" element={<RoomJoinPage />} />
             <Route path="/Create" element={<CreateRoomPage />} />
             <Route path="/room/:roomCode" element={<Room />} />
