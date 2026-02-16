@@ -9,10 +9,14 @@ const navigate = useNavigate();
 const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, is_host: false,});   
 
     const {roomCode} = useParams();
-//console.log(roomCode);
+console.log(roomCode);
 
 useEffect(() => {
-    fetch("/api/get-room?code=" + roomCode).then((res)=>{
+    fetch("/api/get-room?code=" + roomCode).then((res)=>{ 
+        if (!res.ok) {
+        props.leaveRoomCallback();
+        navigate("/") 
+       } else {
         res.json().then((data)=>{
             setState({
                 voteToSkip: data.votes_to_skip,
@@ -20,20 +24,40 @@ useEffect(() => {
                 isHost: data.is_host,
             })
         })
+      }
     })
-}, [roomCode]);
-console.log(state);
+}, [roomCode, navigate]);
+//console.log(state);
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + "=")) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+const csrftoken = getCookie("csrftoken");
 
 const leaveButton = () =>{
      const requestOptions = {
     method: "POST",
     headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
     },
 }
-fetch("/api/Leave_room", requestOptions).then((res)=>{
+fetch("/api/leave_room", requestOptions).then((res)=>{
     if (res.ok) {
-          navigate(`/`)
+        props.leaveRoomCallback();
+         navigate(`/`)
     }
     else {
         console.log({error: "can not redirect"})

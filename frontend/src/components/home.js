@@ -9,20 +9,24 @@ import {Grid, Button, ButtonGroup, Typography} from "@material-ui/core";
 
 const Homepage = () => {
 
-    const [state, setState] = useState()
+    const [roomcode, setroomcode] = useState(null)
 
 
     useEffect(() => {
     fetch("/api/user-in-room").then((res)=>{
             res.json().then((data)=>{
-                setState(data.code)
-                //console.log(data.code);
+                setroomcode(data.code)
+                console.log(data);
                 
              })
         })
     }, []);
 
-console.log(state);
+const clearRoomcode = () =>{
+    setroomcode(null)
+} 
+
+// console.log(state);
 
 
    const renderHomePage = ()=> {
@@ -50,10 +54,10 @@ console.log(state);
 
     return <Router>
         <Routes>
-            <Route path="/" element={state ? <Navigate to={`/room/${state}`}  /> : renderHomePage()} />
+            <Route path="/" element={roomcode ? <Navigate to={`/room/${roomcode}`}  /> : renderHomePage()} />
             <Route path="/join" element={<RoomJoinPage />} />
             <Route path="/Create" element={<CreateRoomPage />} />
-            <Route path="/room/:roomCode" element={<Room />} />
+            <Route path="/room/:roomCode" element={<Room leaveRoomCallback={clearRoomcode}/>} />
         </Routes>
     </Router>
 }

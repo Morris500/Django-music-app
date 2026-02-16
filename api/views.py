@@ -78,7 +78,7 @@ class CreateRoomView(APIView):
                 room = Room(host=host, guest_can_pause = guest_can_pause, votes_to_skip = votes_to_skip )              
 
                 room.save()
-                self.req.session['room_code'] = room.code
+                req.session['room_code'] = room.code
 
             return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
         
@@ -97,7 +97,7 @@ class LeaveRoom(APIView):
         if 'room_code' in req.session:
             req.session.pop('room_code')
             host_id = req.session.session_key
-            room_result = Room.object.filter(host=host_id)
+            room_result = Room.objects.filter(host=host_id)
             if len(room_result) > 0:
                 room = room_result[0]
                 room.delete()
