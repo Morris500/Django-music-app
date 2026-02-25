@@ -1,12 +1,13 @@
 import React, {Component, useEffect, useState} from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { Grid, Button, Typography } from "@material-ui/core";
+import CreateRoomPage from "./createroompage";
 
 const Room = (props) =>{
 
 const navigate = useNavigate();    
 
-const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, is_host: false,});   
+const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, is_host: false, showSettings: false,});   
 
     const {roomCode} = useParams();
 console.log(roomCode);
@@ -65,6 +66,31 @@ fetch("/api/leave_room", requestOptions).then((res)=>{
 }).catch((error) => {console.log(error)})
 }
 
+const updateShowSetting = (value) => {
+    setState({showSettings: value,
+    })
+}
+
+function renderSetting () {
+<Grid container spacing={1}>
+    <Grid item xs={12} align="center">
+        <CreateRoomPage update={true} voteToSkip={state.voteToSkip} guestCanPause={state.guestCanPause} roomCode={roomCode} updateCallback={null}/>
+    </Grid>
+    <Grid item xs={12} align="center">
+        <Button variant='contained' color='secondary' onClick={() => updateShowSetting(false)}>Settings</Button>
+    </Grid>
+
+</Grid>
+}
+
+function renderSettingButton(){
+    return <Grid>
+        <Button variant='contained' color='primary' onClick={() => updateShowSetting(true)}>Settings</Button>
+    </Grid>
+}
+if (state.showSettings) {
+    return renderSetting()
+} 
 return <Grid container spacing={1}>
     <Grid item xs='12' align='center'>
         <Typography variant="h4" component="h4">
@@ -86,6 +112,7 @@ return <Grid container spacing={1}>
             Host: {state.isHost?.toString()}
         </Typography> 
     </Grid>
+    {state.isHost ? renderSettingButton() : null}
     <Grid item xs='12' align='center'>
         <Button variant="contained" color="secondary" onClick={leaveButton}>Leave Room</Button>
     </Grid>
