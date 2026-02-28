@@ -1,15 +1,24 @@
 import React, {Component, useState} from "react";
-import { Button, Grid, Typography, TextField, FormHelperText, FormControl, Radio, RadioGroup, FormControlLabel } from "@material-ui/core";
+import { Button, Grid, Typography, TextField, FormHelperText, FormControl, Radio, RadioGroup, FormControlLabel, Collapse } from "@material-ui/core";
  import { Link, useNavigate } from "react-router-dom";
+ 
 
-const CreateRoomPage = (props)=> {
-const defaultVotes = 2;
+const CreateRoomPage = ({
+    votesToSkip = 2,
+    guestCanPause = true,
+    update = false,
+    roomCode = null,
+    updatecallback = () => {}
+}) => {
+
 
 const navigate = useNavigate();
 
  const [room, setRoom] = useState({
-  guest_can_pause: true,
-  votes_to_skip: defaultVotes,
+  guest_can_pause: guestCanPause,
+  votes_to_skip: votesToSkip,
+  succesMSG:"",
+  errorMSG:"",
 });
 
 function getCookie(name) {
@@ -28,6 +37,26 @@ function getCookie(name) {
 }
 
 const csrftoken = getCookie("csrftoken");
+
+function CreateButton (){
+    return(
+    <Grid container spacing={1}>
+        <Grid item xs={12} align="center">
+            <Button color="primary" variant = "contained" onClick={HandelRoomButtonClicked}>Create A Room</Button>
+        </Grid>
+        <Grid item xs={12} align="center">
+            <Button color="secondary" variant="contained" to="/" component={Link}>Back</Button>
+        </Grid>
+    </Grid>)
+}
+
+function UpdateButton (){
+    return(
+        <Grid item xs={12} align="center">
+            <Button color="primary" variant = "contained" onClick={HandelUpdateButtonClicked}>Update Room</Button>
+        </Grid>
+        )
+    }
 // const HandelVotesChange = (e)=> {
 // setRoom((prev) => ({
 //     ...prev,
@@ -40,6 +69,40 @@ const csrftoken = getCookie("csrftoken");
 //     guest_can_Pause: e.target.value === "true" ?true : false}));
 // }  
 
+const HandelUpdateButtonClicked = () =>{
+console.log({
+        guest_can_pause:room.guest_can_pause,
+        votes_to_skip:room.votes_to_skip,
+        Code:roomCode
+    });
+
+    const requestOptions = {
+    method: "PATCH",
+    headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+    },
+    body: JSON.stringify({
+        guest_can_pause:room.guest_can_pause,
+        votes_to_skip:room.votes_to_skip,
+        code:roomCode
+    })
+    
+    
+}
+fetch("/api/update-room", requestOptions).then((res)=>{
+    console.log(res)
+    if (res.ok) {
+        setRoom({succesMSG:"Room Update Successful"})
+    } else {
+        setRoom({errorMSG:"Error Updating Room"})
+    }
+        
+    }
+)  
+}
+
+
 const HandelRoomButtonClicked = () =>{
 
     const requestOptions = {
@@ -48,7 +111,9 @@ const HandelRoomButtonClicked = () =>{
         "Content-Type": "application/json",
         "X-CSRFToken": csrftoken,
     },
-    body: JSON.stringify(room)
+    body: JSON.stringify({
+        guest_can_pause:room.guest_can_pause,
+        votes_to_skip:room.votes_to_skip})
     
 }
 fetch("/api/create-room", requestOptions).then((res)=>{
@@ -62,18 +127,21 @@ fetch("/api/create-room", requestOptions).then((res)=>{
 }
 //  console.log("X-CSRFToken :", csrftoken);
 
+const title = update ? "Update Room" : "Create Room";
 
-
-     return <Grid container spacing={1}>
+ return <Grid container spacing={1}>
         <Grid item xs={12} align="center">
-            <Typography component= "h4" variant='h4'>create a room</Typography>
+            <Collapse in={room.succesMSG != "" || room.errorMSG != ""}>{room.succesMSG != "" ? room.succesMSG : room.errorMSG } </Collapse>
+        </Grid>
+        <Grid item xs={12} align="center">
+            <Typography component= "h4" variant='h4'>{title}</Typography>
         </Grid>
         <Grid item xs={12} align="center">
             <FormControl>
                 <FormHelperText>
                     <div align='center'>Guest Control play back state</div>
                 </FormHelperText>
-                <RadioGroup row required defaultValue={room.guest_can_pause.toString()} onChange={(e) => setRoom((prev) => ({
+                <RadioGroup row required defaultValue={room.guest_can_pause} onChange={(e) => setRoom((prev) => ({
       ...prev,
       guest_can_pause: e.target.value === "true",
     }))
@@ -107,12 +175,7 @@ fetch("/api/create-room", requestOptions).then((res)=>{
                 </FormHelperText>
             </FormControl>
         </Grid>
-        <Grid item xs={12} align="center">
-            <Button color="primary" variant = "contained" onClick={HandelRoomButtonClicked}>Create A Room</Button>
-        </Grid>
-        <Grid item xs={12} align="center">
-            <Button color="secondary" variant="contained" to="/" component={Link}>Back</Button>
-        </Grid>
+        { update ? <UpdateButton /> : <CreateButton /> }
     </Grid>
    
 }
