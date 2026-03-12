@@ -12,8 +12,8 @@ const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, i
     const {roomCode} = useParams();
 console.log(roomCode);
 
-useEffect(() => {
-    fetch("/api/get-room?code=" + roomCode).then((res)=>{ 
+function getRoomDetails() {
+    return fetch("/api/get-room?code=" + roomCode).then((res)=>{ 
         if (!res.ok) {
         props.leaveRoomCallback();
         navigate("/") 
@@ -27,6 +27,9 @@ useEffect(() => {
         })
       }
     })
+}
+useEffect(() => {
+    getRoomDetails();
 }, [roomCode, navigate]);
 //console.log(state);
 
@@ -74,7 +77,7 @@ const updateShowSetting = (value) => {
 function renderSetting () {
 return <Grid container spacing={1}>
     <Grid item xs={12} align="center">
-        <CreateRoomPage update={true} voteToSkip={state.voteToSkip} guestCanPause={state.guestCanPause} roomCode={roomCode} updateCallback={null}/>
+        <CreateRoomPage update={true} voteToSkip={state.voteToSkip} guestCanPause={state.guestCanPause} roomCode={roomCode} updateCallback={getRoomDetails}/>
     </Grid>
     <Grid item xs={12} align="center">
         <Button variant='contained' color='secondary' onClick={() => updateShowSetting(false)}>Close</Button>

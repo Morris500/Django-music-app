@@ -8,7 +8,7 @@ const CreateRoomPage = ({
     guestCanPause = true,
     update = false,
     roomCode = null,
-    updatecallback = () => {}
+    updateCallback = () => {}
 }) => {
 
 
@@ -97,8 +97,9 @@ fetch("/api/update-room", requestOptions).then((res)=>{
     } else {
         setRoom({errorMSG:"Error Updating Room"})
     }
-        
+        updateCallback();
     }
+    
 )  
 }
 
@@ -131,7 +132,7 @@ const title = update ? "Update Room" : "Create Room";
 
  return <Grid container spacing={1}>
         <Grid item xs={12} align="center">
-            <Collapse in={room.succesMSG != "" || room.errorMSG != ""}>{room.succesMSG != "" ? room.succesMSG : room.errorMSG } </Collapse>
+            <Collapse in={room.succesMSG != "" || room.errorMSG != ""}>{room.succesMSG = "Room Update Successful" ? room.succesMSG : room.errorMSG } </Collapse>
         </Grid>
         <Grid item xs={12} align="center">
             <Typography component= "h4" variant='h4'>{title}</Typography>
@@ -141,7 +142,7 @@ const title = update ? "Update Room" : "Create Room";
                 <FormHelperText>
                     <div align='center'>Guest Control play back state</div>
                 </FormHelperText>
-                <RadioGroup row required defaultValue={room.guest_can_pause} onChange={(e) => setRoom((prev) => ({
+                <RadioGroup row required defaultValue={guestCanPause.toString()} onChange={(e) => setRoom((prev) => ({
       ...prev,
       guest_can_pause: e.target.value === "true",
     }))
@@ -164,7 +165,7 @@ const title = update ? "Update Room" : "Create Room";
                 ({ ...prev,
                     votes_to_skip: Number(e.target.value),
                 }))
-  } type="number" defaultValue={room.votes_to_skip}
+  } type="number" defaultValue={votesToSkip}
                 inputProps={{
                     min:1, 
                     style: {textAlign: "center"}
