@@ -7,7 +7,7 @@ const Room = (props) =>{
 
 const navigate = useNavigate();    
 
-const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, is_host: false, showSettings: false,});   
+const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, is_host: false, showSettings: false, spotify_authenticated: false,});   
 
     const {roomCode} = useParams();
 console.log(roomCode);
@@ -24,9 +24,18 @@ function getRoomDetails() {
                 guestCanPause: data.guest_can_pause,
                 isHost: data.is_host,
             })
+            if (state.is_host) {
+                authenticteSpotify();
+            }
         })
       }
     })
+}
+function authenticteSpotify() {
+    fetch('/spotify/is_authenticated').then((res)=> res.json()).then((data) => {spotifyAuthenticated: data.status});
+    if (!data.status) {
+        fetch('/spotify/get-auth-url').then((res) => res.json()).then((data) =>{window.Location.replace(data.url)})
+    }
 }
 useEffect(() => {
     getRoomDetails();
