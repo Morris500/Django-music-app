@@ -2,40 +2,51 @@ import React, {Component, useEffect, useState} from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { Grid, Button, Typography } from "@material-ui/core";
 import CreateRoomPage from "./createroompage.js";
+import MusicPlayer from "./MusicPlayer.js";
 
 const Room = (props) =>{
 
 const navigate = useNavigate();    
 
-const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, is_host: false, showSettings: false, spotify_authenticated: false,});   
+const [state, setState]= useState({votes_to_skip: null, guest_can_pause: null, isHost: false, showSettings: false, spotify_authenticated: false, song: {}});   
 
     const {roomCode} = useParams();
 console.log(roomCode);
 
+function componentDidMount() {
+    interval = setInterval(getCurrentSong, 1000);
+}
+function componentWillUnmount(){
+    clearInterval(interval)
+}
 function getRoomDetails() {
     return fetch("/api/get-room?code=" + roomCode).then((res)=>{ 
         if (!res.ok) {
         props.leaveRoomCallback();
         navigate("/") 
-       } else {
-        res.json().then((data)=>{
+        }
+        return res.json()
+    }).then((data)=>{
             setState({
-                voteToSkip: data.votes_to_skip,
-                guestCanPause: data.guest_can_pause,
-                isHost: data.is_host,
-            })
-            if (state.is_host) {
+                votes_to_skip: data.votes_to_skip,
+                guest_can_pause: data.guest_can_pause,
+                isHost:data.is_host,
+            })    
+        
+      if (data.is_host) {
                 authenticteSpotify();
             }
-        })
-      }
+
     })
 }
 function authenticteSpotify() {
-    fetch('/spotify/is_authenticated').then((res)=> res.json()).then((data) => {spotifyAuthenticated: data.status});
-    if (!data.status) {
-        fetch('/spotify/get-auth-url').then((res) => res.json()).then((data) =>{window.Location.replace(data.url)})
+    fetch('/spotify/is_authenticated').then((res)=> res.json()).then((data) => {
+        setState({spotifyAuthenticated:data.status})
+        
+        if (!data.status) {
+        fetch('/spotify/get-auth-url').then((res) => res.json()).then((data) =>{window.location.replace(data.url)})
     }
+  })
 }
 useEffect(() => {
     getRoomDetails();
@@ -58,6 +69,18 @@ function getCookie(name) {
 }
 
 const csrftoken = getCookie("csrftoken");
+
+const getCurrentSong= ()=> {
+    fetch('/spotify/current-song').then((res)=>{
+        if (!res.ok) {
+            return {};
+        } else {
+            return res.json();
+        }
+    }).then((data) =>{
+        setState({song: data})
+    })
+}
 
 const leaveButton = () =>{
      const requestOptions = {
@@ -86,7 +109,7 @@ const updateShowSetting = (value) => {
 function renderSetting () {
 return <Grid container spacing={1}>
     <Grid item xs={12} align="center">
-        <CreateRoomPage update={true} voteToSkip={state.voteToSkip} guestCanPause={state.guestCanPause} roomCode={roomCode} updateCallback={getRoomDetails}/>
+        <CreateRoomPage update={true} voteToSkip={state.votes_to_skip} guestCanPause={state.guest_can_pause} roomCode={roomCode} updateCallback={getRoomDetails}/>
     </Grid>
     <Grid item xs={12} align="center">
         <Button variant='contained' color='secondary' onClick={() => updateShowSetting(false)}>Close</Button>
@@ -109,21 +132,7 @@ return <Grid container spacing={1}>
             Code: {roomCode}
         </Typography>
     </Grid>
-    <Grid item xs='12' align='center'>
-        <Typography variant="h6" component="h6">
-            Votes: {state.voteToSkip}   
-        </Typography>
-    </Grid>
-    <Grid item xs='12' align='center'>
-        <Typography variant="h6" component="h6">
-            Guest Can Pause:{state.guestCanPause?.toString()}
-        </Typography>
-    </Grid>
-    <Grid item xs='12' align='center'>
-        <Typography variant="h6" component="h6">
-            Host: {state.isHost?.toString()}
-        </Typography> 
-    </Grid>
+    <MusicPlayer {...state.song}/>
     {state.isHost ? renderSettingButton() : null}
     <Grid item xs='12' align='center'>
         <Button variant="contained" color="secondary" onClick={leaveButton}>Leave Room</Button>
@@ -142,3 +151,19 @@ return <Grid container spacing={1}>
 }
 
 export default Room;
+
+{/* <Grid item xs='12' align='center'>
+        <Typography variant="h6" component="h6">
+            Votes: {state.votes_to_skip}   
+        </Typography>
+    </Grid>
+    <Grid item xs='12' align='center'>
+        <Typography variant="h6" component="h6">
+            Guest Can Pause:{state.guest_can_pause?.toString()}
+        </Typography>
+    </Grid>
+    <Grid item xs='12' align='center'>
+        <Typography variant="h6" component="h6">
+            Host: {state.isHost?.toString()}
+        </Typography> 
+    </Grid> */}
